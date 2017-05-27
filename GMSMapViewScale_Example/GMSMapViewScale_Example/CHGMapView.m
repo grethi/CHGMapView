@@ -21,7 +21,9 @@ const float KMTOMI = 0.000621371f;
 
 #import "CHGMapView.h"
 
-@implementation CHGMapView
+@implementation CHGMapView {
+    NSTimer *updateScaleTimer;
+}
 
 + (instancetype)mapWithFrame:(CGRect)frame camera:(GMSCameraPosition *)camera
 {
@@ -73,13 +75,23 @@ const float KMTOMI = 0.000621371f;
     miScaleEnd.backgroundColor = [UIColor blackColor];
     [miScale addSubview:miScaleEnd];
     
-    [self addObserver:self forKeyPath:@"camera" options:NSKeyValueObservingOptionNew context:nil];
+    [self addObserver:self forKeyPath:@"camera" options:(NSKeyValueObservingOptionNew | NSKeyValueObservingOptionOld) context:nil];
 }
 
 - (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary<NSKeyValueChangeKey,id> *)change context:(void *)context
 {
     if ([keyPath  isEqual: @"camera"]) {
-        [self updateScale];
+        
+        GMSCameraPosition *oldCamera = [change objectForKey:@"old"];
+        GMSCameraPosition *newCamera = [change objectForKey:@"new"];
+        
+        if (oldCamera.zoom != newCamera.zoom) {
+            [updateScaleTimer invalidate];
+            updateScaleTimer = [NSTimer scheduledTimerWithTimeInterval:0.02f
+                                                                target:self
+                                                              selector:@selector(updateScale)
+                                                              userInfo:nil repeats:NO];
+        }
     }
 }
 
@@ -103,7 +115,7 @@ const float KMTOMI = 0.000621371f;
                                    @10000 : @"10 km", @20000 : @"20 km", @50000 : @"50 km",
                                    @100000 : @"100 km", @200000 : @"200 km", @500000 : @"500 km",
                                    @1000000 : @"1000 km", @2000000 : @"2000 km", @5000000 : @"5000 km",
-                                   @10000000 : @"10000 km", @20000000 : @"20000 km", @50000000 : @"50000 km" };
+                                   @10000000 : @"10000 km", @20000000 : @"20000 km", @50000000 : @"50000 km"};
     
     NSSortDescriptor *sortDescriptor = [[NSSortDescriptor alloc] initWithKey:@"floatValue" ascending:YES];
     NSArray *sortedKeys = [[kmScaleText allKeys] sortedArrayUsingDescriptors:@[sortDescriptor]];
@@ -122,7 +134,7 @@ const float KMTOMI = 0.000621371f;
     kmScale.center = CGPointMake(CGRectGetWidth(self.bounds) - kmScalePXsize / 2 - SCALEVIEWRIGHTPADDING,
                                  CGRectGetHeight(self.bounds) - SCALEVIEWBOTTOMPADDING);
     
-    // place km label -> under of scale
+    // place km label -> below scale
     UILabel *kmScaleLabel = [kmScale viewWithTag:SCALEVIEWLABELTAG];
     kmScaleLabel.text = kmScaleLabelText;
     kmScaleLabel.frame = CGRectMake(0, 2, kmScalePXsize, 11);
@@ -141,7 +153,7 @@ const float KMTOMI = 0.000621371f;
                                    @100 : @"100 mi", @200 : @"200 mi", @500 : @"500 mi",
                                    @1000 : @"1000 mi", @2000 : @"2000 mi", @5000 : @"5000 mi",
                                    @10000 : @"10000 mi", @20000 : @"20000 mi", @50000 : @"50000 mi",
-                                   @100000 : @"100000 mi", @200000 : @"200000 mi", @500000 : @"500000 mi",};
+                                   @100000 : @"100000 mi", @200000 : @"200000 mi", @500000 : @"500000 mi"};
     
     sortedKeys = [[miScaleText allKeys] sortedArrayUsingDescriptors:@[sortDescriptor]];
     NSString *miScaleLabelText = @"";
@@ -159,7 +171,7 @@ const float KMTOMI = 0.000621371f;
     miScale.center = CGPointMake(CGRectGetWidth(self.bounds) - miScalePXsize / 2 - SCALEVIEWRIGHTPADDING,
                                  CGRectGetHeight(self.bounds) - SCALEVIEWBOTTOMPADDING);
     
-    // place mi label -> under of scale
+    // place mi label -> above scale
     UILabel *miScaleLabel = [miScale viewWithTag:SCALEVIEWLABELTAG];
     miScaleLabel.text = miScaleLabelText;
     miScaleLabel.frame = CGRectMake(0, -11, miScalePXsize, 11);
@@ -168,6 +180,17 @@ const float KMTOMI = 0.000621371f;
     UIView *miScaleEnd = [miScale viewWithTag:SCALEVIEWENDTAG];
     miScaleEnd.frame = CGRectMake(0, -13, SCALELINESTRENGTH, 13);
     
+    // animate hide
+    kmScale.alpha = 1;
+    miScale.alpha = 1;
+    [UIView animateWithDuration:0.5f
+                          delay:2.5f
+                        options:UIViewAnimationOptionCurveEaseOut
+                     animations:^(void) {
+                         kmScale.alpha = 0;
+                         miScale.alpha = 0;
+                     }
+                     completion:nil];
 }
 
 - (CLLocationDistance)distance
