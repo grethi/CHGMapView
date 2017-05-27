@@ -1,0 +1,3 @@
+target 'GMSMapViewScale_Example'
+
+pod 'GoogleMaps'
