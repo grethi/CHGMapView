@@ -19,7 +19,8 @@
 
 @implementation ViewController
 
-- (void)loadView {
+- (void)loadView
+{
     // Create a GMSCameraPosition that tells the map to display the
     // coordinate -33.86,151.20 at zoom level 6.
     GMSCameraPosition *camera = [GMSCameraPosition cameraWithLatitude:-33.86
@@ -29,22 +30,34 @@
     mapView.myLocationEnabled = YES;
     mapView.settings.myLocationButton = YES;
     self.view = mapView;
-    
-    // Creates a marker in the center of the map.
-    GMSMarker *marker = [[GMSMarker alloc] init];
-    marker.position = CLLocationCoordinate2DMake(-33.86, 151.20);
-    marker.title = @"Sydney";
-    marker.snippet = @"Australia";
-    marker.map = mapView;
 }
 
-- (void)viewDidLoad {
+- (void)viewDidLoad
+{
     [super viewDidLoad];
-    // Do any additional setup after loading the view, typically from a nib.
+    
+    self.title = @"GMSMapView with Scale";
+    
+    UIBarButtonItem *flex = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFlexibleSpace target:self action:nil];
+    UIBarButtonItem *normal = [[UIBarButtonItem alloc] initWithTitle:@"Normal" style:UIBarButtonItemStylePlain target:self action:@selector(normal)];
+    UIBarButtonItem *satelite = [[UIBarButtonItem alloc] initWithTitle:@"Satellite" style:UIBarButtonItemStylePlain target:self action:@selector(satellite)];
+    
+    self.toolbarItems = @[flex, normal, flex, satelite, flex];
+    
 }
 
+- (void)normal
+{
+    ((GMSMapView *)self.view).mapType = kGMSTypeNormal;
+}
 
-- (void)didReceiveMemoryWarning {
+- (void)satellite
+{
+    ((GMSMapView *)self.view).mapType = kGMSTypeSatellite;
+}
+
+- (void)didReceiveMemoryWarning
+{
     [super didReceiveMemoryWarning];
     // Dispose of any resources that can be recreated.
 }

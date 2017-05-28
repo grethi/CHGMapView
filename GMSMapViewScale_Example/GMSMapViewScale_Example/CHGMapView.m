@@ -42,45 +42,44 @@ const float KMTOMI = 0.000621371f;
     // km scale, km label and km end view
     UIView *kmScale = [[UIView alloc] init];
     kmScale.tag = KMSCALEVIEWTAG;
-    kmScale.backgroundColor = [UIColor blackColor];
     [self addSubview:kmScale];
     
     UILabel *kmScaleLabel = [[UILabel alloc] init];
     kmScaleLabel.tag = SCALEVIEWLABELTAG;
     kmScaleLabel.textAlignment = NSTextAlignmentRight;
     kmScaleLabel.font = [kmScaleLabel.font fontWithSize:9.f];
-    kmScaleLabel.textColor = [UIColor blackColor];
     [kmScale addSubview:kmScaleLabel];
     
     UIView *kmScaleEnd = [[UIView alloc] init];
     kmScaleEnd.tag = SCALEVIEWENDTAG;
-    kmScaleEnd.backgroundColor = [UIColor blackColor];
     [kmScale addSubview:kmScaleEnd];
     
     // mi scale, mi label and end view
     UIView *miScale = [[UIView alloc] init];
     miScale.tag = MISCALEVIEWTAG;
-    miScale.backgroundColor = [UIColor blackColor];
     [self addSubview:miScale];
     
     UILabel *miScaleLabel = [[UILabel alloc] init];
     miScaleLabel.tag = SCALEVIEWLABELTAG;
-    miScaleLabel.textColor = [UIColor blackColor];
     miScaleLabel.textAlignment = NSTextAlignmentRight;
     miScaleLabel.font = [miScaleLabel.font fontWithSize:9.f];
     [miScale addSubview:miScaleLabel];
     
     UIView *miScaleEnd = [[UIView alloc] init];
     miScaleEnd.tag = SCALEVIEWENDTAG;
-    miScaleEnd.backgroundColor = [UIColor blackColor];
     [miScale addSubview:miScaleEnd];
     
+    // apply colors
+    [self colorScale];
+    
+    // add observer to update scale and scale color
     [self addObserver:self forKeyPath:@"camera" options:(NSKeyValueObservingOptionNew | NSKeyValueObservingOptionOld) context:nil];
+    [self addObserver:self forKeyPath:@"mapType" options:0 context:nil];
 }
 
 - (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary<NSKeyValueChangeKey,id> *)change context:(void *)context
 {
-    if ([keyPath  isEqual: @"camera"]) {
+    if ([keyPath isEqualToString:@"camera"]) {
         
         GMSCameraPosition *oldCamera = [change objectForKey:@"old"];
         GMSCameraPosition *newCamera = [change objectForKey:@"new"];
@@ -92,7 +91,31 @@ const float KMTOMI = 0.000621371f;
                                                               selector:@selector(updateScale)
                                                               userInfo:nil repeats:NO];
         }
+    } else if ([keyPath isEqualToString:@"mapType"]) {
+        [self colorScale];
     }
+}
+
+- (void)colorScale
+{
+    UIColor *color = [UIColor blackColor];
+    if (self.mapType == kGMSTypeSatellite) {
+        color = [UIColor whiteColor];
+    }
+    
+    UIView *kmScale = [self viewWithTag:KMSCALEVIEWTAG];
+    kmScale.backgroundColor = color;
+    UILabel *kmScaleLabel = [kmScale viewWithTag:SCALEVIEWLABELTAG];
+    kmScaleLabel.textColor = color;
+    UIView *kmScaleEnd = [kmScale viewWithTag:SCALEVIEWENDTAG];
+    kmScaleEnd.backgroundColor = color;
+    
+    UIView *miScale = [self viewWithTag:MISCALEVIEWTAG];
+    miScale.backgroundColor = color;
+    UILabel *miScaleLabel = [miScale viewWithTag:SCALEVIEWLABELTAG];
+    miScaleLabel.textColor = color;
+    UIView *miScaleEnd = [miScale viewWithTag:SCALEVIEWENDTAG];
+    miScaleEnd.backgroundColor = color;
 }
 
 - (void)updateScale
