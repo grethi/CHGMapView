@@ -1,4 +1,4 @@
-# CHGMapView a GMSMapView with a graphical scale
+# CHGMapView: a GMSMapView with a graphical scale
 
 ## Example
 
